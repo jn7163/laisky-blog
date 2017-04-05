@@ -126,18 +126,16 @@ class APIHandler(BaseAPIHandler):
         else:
             return await self.list()
 
-    @tornado.gen.coroutine
-    @debug_wrapper
-    def parse_docus(self, docus):
+    async def parse_docus(self, docus):
         try:
             for p in (getattr(self, '_parsers', tuple()) + self._base_parsers):
-                docus = yield p.parse_results(self, docus)
+                docus = await p.parse_results(self, docus)
         except ParserError as err:
             logger.debug(err)
             self.http_400_bad_request(err=err)
             return None
 
-        raise tornado.gen.Return(docus)
+        return docus
 
     def get_col(self):
         assert self._collection, 'You must identify _collecion'

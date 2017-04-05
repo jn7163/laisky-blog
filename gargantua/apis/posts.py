@@ -15,11 +15,10 @@ class PostCategoriesAPIHandler(APIHandler):
     _collection = 'categories'
     _filters = (OidSortFilter, LimitFilter, SkitFilter)
 
-    @tornado.gen.coroutine
-    @debug_wrapper
-    def retrieve(self, oid):
+    @tornado.web.asynchronous
+    async def retrieve(self, oid):
         if not is_objectid(oid):
-            docu = yield self.db.categories.find_one({'name': urllib.parse.unquote(oid)})
+            docu = await self.db.categories.find_one({'name': urllib.parse.unquote(oid)})
             if docu:
                 oid = str(docu['_id'])
 
