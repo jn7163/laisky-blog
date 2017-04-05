@@ -151,20 +151,18 @@ class APIHandler(BaseAPIHandler):
         cursor = col.find(query, projection)
         return await self.pass_filter(cursor)
 
-    @tornado.gen.coroutine
-    @debug_wrapper
-    def pass_query_makers(self):
+    async def pass_query_makers(self):
         query, projection = {}, None
         try:
             for qm in (getattr(self, '_query_makers', tuple()) + self._base_query_makers):
-                query, projection = yield qm.update_query(self, query, projection)
+                query, projection = await qm.update_query(self, query, projection)
 
         except QueryMakerError as err:
             logger.debug(err)
             self.http_400_bad_request(err=err)
             return None, None
 
-        raise tornado.gen.Return((query, projection))
+        return query, projection
 
     async def pass_filter(self, cursor):
         for f in (getattr(self, '_filters', tuple()) + self._base_filters):

@@ -15,9 +15,8 @@ class QueryMakerError(Exception):
 class BaseMaker(ABC):
 
     @abstractclassmethod
-    @tornado.gen.coroutine
-    def update_query(cls, app, query, projection):
-        raise tornado.gen.Return((query, projection))
+    async def update_query(cls, app, query, projection):
+        return query, projection
 
 
 class PostCategoiesFilterMaker(BaseMaker):
@@ -41,9 +40,7 @@ class PostCategoiesFilterMaker(BaseMaker):
         }
 
     @classmethod
-    @tornado.gen.coroutine
-    @debug_wrapper
-    def update_query(cls, app, query, projection):
+    async def update_query(cls, app, query, projection):
         projection = projection
         try:
             category = app.get_argument('category', default=None, strip=True)
@@ -51,7 +48,7 @@ class PostCategoiesFilterMaker(BaseMaker):
                 if is_objectid(category):
                     category = ObjectId(category)
                 else:
-                    docu = yield app.db.categories.find_one({'name': category})
+                    docu = await app.db.categories.find_one({'name': category})
                     if docu:
                         category = docu['_id']
         except Exception as err:
@@ -64,5 +61,5 @@ class PostCategoiesFilterMaker(BaseMaker):
             else:
                 query['category'] = category
 
-        raise tornado.gen.Return((query, projection))
+        return query, projection
 
