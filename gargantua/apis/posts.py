@@ -2,14 +2,13 @@ import json
 import urllib
 
 import tornado
-from bson import ObjectId
 
-from gargantua.utils import debug_wrapper, logger, is_objectid
 from gargantua.models.articles import ArticlesModel
+from gargantua.utils import debug_wrapper, is_objectid, logger
 from .base import APIHandler
-from .filters import OidSortFilter, LimitFilter, SkitFilter
+from .filters import LimitFilter, OidSortFilter, SkitFilter
+from .parsers import PostContentParser, PostContentTruncateParser
 from .query_makers import PostCategoiesFilterMaker
-from .parsers import PostContentTruncateParser, PostContentParser
 
 
 class PostCategoriesAPIHandler(APIHandler):

@@ -120,11 +120,11 @@ class APIHandler(BaseAPIHandler):
     _base_parsers =(DatetimeParser, MongoDataParser)
 
     @tornado.web.asynchronous
-    def get(self, oid=None):
+    async def get(self, oid=None):
         if oid:
-            return self.retrieve(oid)
+            return await self.retrieve(oid)
         else:
-            return self.list()
+            return await self.list()
 
     @tornado.gen.coroutine
     @debug_wrapper
@@ -187,43 +187,39 @@ class APIHandler(BaseAPIHandler):
     def parse_oid(self, oid):
         return urllib.parse.quote(oid).lower()
 
-    @tornado.gen.coroutine
-    @debug_wrapper
-    def retrieve(self, oid):
+    async def retrieve(self, oid):
         logger.info('retrieve {} for oid {}'
                     .format(self._collection, oid))
         col = self.get_col()
         oidname = self.get_oidname()
         try:
             f_oid = self.parse_oid(oid)
-            docu = yield col.find_one({oidname: f_oid})
+            docu = await col.find_one({oidname: f_oid})
             assert docu, 'article not exists!'
         except Exception as err:
             self.http_404_not_found(err=err)
             return
 
-        parsed_docu = yield self.parse_docus([docu])
+        parsed_docu = await self.parse_docus([docu])
         if not parsed_docu:
             return
 
         self.success(parsed_docu[0])
 
-    @tornado.gen.coroutine
-    @debug_wrapper
-    def list(self):
-        cursor = yield self.get_cursor()
+    async def list(self):
+        cursor = await self.get_cursor()
         if not cursor:
             return
 
         posts = []
-        while (yield cursor.fetch_next):
+        while (await cursor.fetch_next):
             docu = cursor.next_object()
             post = mongo_parser.parse(docu)
             posts.append(post)
 
         col = self.get_col()
-        total = yield col.count()
-        parsed_docus = yield self.parse_docus(posts)
+        total = await col.count()
+        parsed_docus = await self.parse_docus(posts)
         if not parsed_docus:
             return None
 
