@@ -25,9 +25,7 @@ class PostCategoriesAPIHandler(APIHandler):
         super().retrieve(oid)
 
     @tornado.web.authenticated
-    @tornado.gen.coroutine
-    @debug_wrapper
-    def put(self, category=None):
+    async def put(self, category=None):
         try:
             categories = self.get_argument('categories', strip=True)
             categories = json.loads(categories)
@@ -36,7 +34,8 @@ class PostCategoriesAPIHandler(APIHandler):
             return
 
         logger.debug('PostCategoriesAPIHandler PUT for categories %s', categories)
-        yield ArticlesModel.update_posts_categories(categories)
+        await ArticlesModel.update_posts_categories(categories)
+        return self.success(data='ok')
 
 
 class PostAPIHandler(APIHandler):
