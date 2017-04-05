@@ -141,17 +141,15 @@ class APIHandler(BaseAPIHandler):
         assert self._collection, 'You must identify _collecion'
         return getattr(self.db, self._collection)
 
-    @tornado.gen.coroutine
-    @debug_wrapper
-    def get_cursor(self):
+    async def get_cursor(self):
         col = self.get_col()
-        query, projection = yield self.pass_query_makers()
+        query, projection = await self.pass_query_makers()
         if query is None:
             logger.debug('not get query')
             return
 
         cursor = col.find(query, projection)
-        raise tornado.gen.Return(self.pass_filter(cursor))
+        return await self.pass_filter(cursor)
 
     @tornado.gen.coroutine
     @debug_wrapper
@@ -168,10 +166,10 @@ class APIHandler(BaseAPIHandler):
 
         raise tornado.gen.Return((query, projection))
 
-    def pass_filter(self, cursor):
+    async def pass_filter(self, cursor):
         for f in (getattr(self, '_filters', tuple()) + self._base_filters):
             try:
-                cursor = f.query_cursor(self, cursor)
+                cursor = await f.query_cursor(self, cursor)
             except FilterError as err:
                 logger.debug(err)
                 self.http_400_bad_request(err=err)
