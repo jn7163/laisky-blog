@@ -3,6 +3,7 @@
 
 import re
 from collections import OrderedDict
+from functools import wraps
 
 import markdown2
 
@@ -26,6 +27,15 @@ def convert2chn_serial(number):
     return ''.join(map(lambda n: CHINESE_SERIAL[n], str(int(number))))
 
 
+def extract_special_section(func, content, *args, **kw):
+    @wraps
+    def wrapper():
+        ret = func(content, *args, **kw)
+        return ret
+    return wrapper
+
+
+@extract_special_section
 def render_md_to_html(content, is_extract_menu=False):
     html = markdown2.markdown(content, extras=['fenced-code-blocks', 'footnotes', 'tables'])
     html = '<div>{}</div>'.format(html)
@@ -49,8 +59,8 @@ def render_md_to_html(content, is_extract_menu=False):
             html = html.replace(cont, new_title)
 
         return html, title_menu.render()
-    else:
-        return html
+
+    return html
 
 
 class TitleMenu():
